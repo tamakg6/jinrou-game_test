@@ -83,7 +83,7 @@ with st.sidebar:
     st.write(f"日数: {st.session_state.day_count}")
     if st.button("ゲームをリセット"):
         init_game_state()
-        st.experimental_rerun()
+        st.rerun()
 
 # =======================
 # フェーズ: 設定
@@ -115,7 +115,7 @@ if st.session_state.phase == "setup":
         st.session_state.last_execution = None
         st.session_state.win_side = None
         st.session_state.phase = "show_roles"
-        st.experimental_rerun()
+        st.rerun()
 
 # =======================
 # フェーズ: 役職確認
@@ -145,7 +145,7 @@ elif st.session_state.phase == "show_roles":
             st.session_state.show_index = 0
             st.session_state.phase = "night"
             st.session_state.night_step = "wolf"
-        st.experimental_rerun()
+        st.rerun()
 
 # =======================
 # フェーズ: 夜
@@ -175,7 +175,7 @@ elif st.session_state.phase == "night":
             st.write("生存している人狼はいません。")
             if st.button("次（占い師のターンへ）"):
                 st.session_state.night_step = "seer"
-                st.experimental_rerun()
+                st.rerun()
         else:
             st.write("人狼のプレイヤーは協力して、襲撃する相手を1人決めてください。")
             target = st.selectbox(
@@ -187,7 +187,7 @@ elif st.session_state.phase == "night":
             if st.button("このプレイヤーを襲撃する"):
                 st.session_state.night_actions["wolf_target"] = target
                 st.session_state.night_step = "seer"
-                st.experimental_rerun()
+                st.rerun()
 
     # ---- 占い師ターン ----
     elif step == "seer":
@@ -197,7 +197,7 @@ elif st.session_state.phase == "night":
             st.write("生存している占い師はいません。")
             if st.button("次（騎士のターンへ）"):
                 st.session_state.night_step = "guard"
-                st.experimental_rerun()
+                st.rerun()
         else:
             st.write("占い師は、占いたい相手を1人選びます。")
             target = st.selectbox(
@@ -218,7 +218,7 @@ elif st.session_state.phase == "night":
                 )
                 if st.button("占い師のターンを終了して次へ"):
                     st.session_state.night_step = "guard"
-                    st.experimental_rerun()
+                    st.rerun()
 
     # ---- 騎士ターン ----
     elif step == "guard":
@@ -228,7 +228,7 @@ elif st.session_state.phase == "night":
             st.write("生存している騎士はいません。")
             if st.button("次（夜の結果へ）"):
                 st.session_state.night_step = "resolve"
-                st.experimental_rerun()
+                st.rerun()
         else:
             st.write("騎士は、守る相手を1人選びます。（自分を守れるかどうかは卓ルールで決めてください）")
             target = st.selectbox(
@@ -240,7 +240,7 @@ elif st.session_state.phase == "night":
             if st.button("このプレイヤーを守る"):
                 st.session_state.night_actions["guard_target"] = target
                 st.session_state.night_step = "resolve"
-                st.experimental_rerun()
+                st.rerun()
 
     # ---- 夜の結果処理 ----
     elif step == "resolve":
@@ -286,7 +286,7 @@ elif st.session_state.phase == "night":
         else:
             st.session_state.phase = "day_talk"
         if st.button("朝になる"):
-            st.experimental_rerun()
+            st.rerun()
 
 # =======================
 # フェーズ: 昼（議論）
@@ -308,7 +308,7 @@ elif st.session_state.phase == "day_talk":
         st.session_state.votes = [None] * st.session_state.num_players
         st.session_state.vote_index = 0
         st.session_state.phase = "vote"
-        st.experimental_rerun()
+        st.rerun()
 
 # =======================
 # フェーズ: 投票
@@ -360,7 +360,7 @@ elif st.session_state.phase == "vote":
             st.session_state.phase = "night"
 
         if st.button("次へ"):
-            st.experimental_rerun()
+            st.rerun()
 
     else:
         # 投票中
@@ -368,7 +368,7 @@ elif st.session_state.phase == "vote":
             st.write(f"プレイヤー {idx+1} は死亡しているため投票できません。")
             if st.button("次のプレイヤーへ"):
                 st.session_state.vote_index += 1
-                st.experimental_rerun()
+                st.rerun()
         else:
             st.write("※端末をプレイヤーごとに渡して使ってください。")
             st.subheader(f"プレイヤー {idx+1} の投票")
@@ -383,7 +383,7 @@ elif st.session_state.phase == "vote":
             if st.button("このプレイヤーに投票する"):
                 st.session_state.votes[idx] = target
                 st.session_state.vote_index += 1
-                st.experimental_rerun()
+                st.rerun()
 
 # =======================
 # フェーズ: 結果表示
@@ -407,4 +407,4 @@ elif st.session_state.phase == "result":
 
     if st.button("もう一度遊ぶ"):
         init_game_state()
-        st.experimental_rerun()
+        st.rerun()
