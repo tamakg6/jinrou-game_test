@@ -115,6 +115,7 @@ if st.session_state.phase == "setup":
         st.session_state.last_execution = None
         st.session_state.win_side = None
         st.session_state.phase = "show_roles"
+        st.session_state.seer_done_today = False  # この夜に占い師が占い済みか
         st.rerun()
 
 # =======================
@@ -199,25 +200,33 @@ elif st.session_state.phase == "night":
                 st.session_state.night_step = "guard"
                 st.rerun()
         else:
-            st.write("占い師は、占いたい相手を1人選びます。")
-            target = st.selectbox(
-                "占うプレイヤーを選択",
-                [i for i in alive_players if i not in seers],
-                format_func=lambda x: f"プレイヤー {x+1}",
-                key="seer_target_select",
-            )
-            if st.button("このプレイヤーを占う"):
-                st.session_state.night_actions["seer_target"] = target
-                # 結果を占い師だけが見る前提だが、
-                # 実際には口頭で伝える運用など、卓のルールに合わせてください。
-                result_role = st.session_state.roles[target]
-                is_wolf = (result_role == "人狼")
-                st.success(
-                    f"占い結果：プレイヤー {target+1} は "
-                    + ("人狼です。" if is_wolf else "人狼ではありません。")
-                )
-                if st.button("占い師のターンを終了して次へ"):
+            # すでにこの夜占い済みならスキップ
+            if st.session_state.seer_done_today:
+                st.write("この夜はすでに占いを行いました。")
+                if st.button("次（騎士のターンへ）"):
                     st.session_state.night_step = "guard"
+                    st.rerun()
+            else:
+                st.write("占い師は、占いたい相手を1人選びます。")
+
+                target = st.selectbox(
+                    "占うプレイヤーを選択",
+                    [i for i in alive_players if i not in seers],
+                    format_func=lambda x: f"プレイヤー {x+1}",
+                    key="seer_target_select",
+                )
+
+                if st.button("このプレイヤーを占う"):
+                    st.session_state.night_actions["seer_target"] = target
+                    result_role = st.session_state.roles[target]
+                    is_wolf = (result_role == "人狼")
+                    st.session_state.seer_done_today = True  # この夜はもう占えない
+
+                    # 結果メッセージは session_state に入れておくか、その場で表示
+                    st.session_state.last_seer_message = (
+                        f"占い結果：プレイヤー {target+1} は "
+                        + ("人狼です。" if is_wolf else "人狼ではありません。")
+                    )
                     st.rerun()
 
     # ---- 騎士ターン ----
@@ -275,6 +284,7 @@ elif st.session_state.phase == "night":
             "guard_target": None,
         }
         st.session_state.night_step = "wolf"
+        st.session_state.seer_done_today = False  # ← 夜ごとにリセット
 
         st.write(info)
 
