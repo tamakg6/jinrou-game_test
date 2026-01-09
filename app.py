@@ -214,7 +214,7 @@ elif st.session_state.phase == "night":
             st.session_state.night_player_index = 0
             st.session_state.day_count += 1
             st.rerun()
-        return
+            return
     
     # 現在のプレイヤーの行動フェーズ
     st.subheader(f"プレイヤー {current_player+1} の番")
