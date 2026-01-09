@@ -228,27 +228,31 @@ elif st.session_state.phase == "night":
         st.session_state.current_player += 1
         st.rerun()
     
-    # 全員1周完了で自動昼フェーズ ← これを以下に置き換え
+    # 全員1周完了で自動昼フェーズ
     if st.session_state.current_player >= len(alive_players):
         st.subheader("🌅 **夜明け・結果発表**")
         
         wolf_target = st.session_state.night_actions["wolf_target"]
         guard_target = st.session_state.night_actions["guard_target"]
         
-        if wolf_target is not None:  # まず襲撃対象確認
+        # 🔧 正しい騎士守護判定
+        if wolf_target is not None:
             if guard_target is not None and wolf_target == guard_target:
-            # 騎士守護成功 → 誰も死なない
-            last_night_info = "昨夜の犠牲者はいませんでした"
+                st.session_state.last_night_info = "**昨夜の犠牲者はいませんでした**"
+            else:
+                # 守護なし、または守護対象と別人 → 襲撃成功
+                if st.session_state.alive[wolf_target]:
+                    st.session_state.alive[wolf_target] = False
+                    st.session_state.last_night_info = f"💀 P{wolf_target+1} が惨殺されました"
+                else:
+                    st.session_state.last_night_info = "**昨夜の犠牲者はいませんでした**"
         else:
-            # 守護失敗 → 襲撃対象を確実に死亡処理
-            if st.session_state.alive[wolf_target]:
-                st.session_state.alive[wolf_target] = False
-
+            st.session_state.last_night_info = "**昨夜の犠牲者はいませんでした**"
         
         st.error(st.session_state.last_night_info)
         st.info("**全員の夜の行動が終了しました**")
         
-        # 自動で昼フェーズへ（ボタンなし）
+        # 自動で昼フェーズへ
         winner = check_win()
         if winner:
             st.session_state.game_winner = winner
