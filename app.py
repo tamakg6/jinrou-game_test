@@ -225,7 +225,7 @@ elif st.session_state.phase == "night":
         if st.button("次へ"):
             st.session_state.night_player_index += 1
             st.rerun()
-        return
+            return
     
     # 役職ごとの行動
     if roles[current_player] == "人狼":
