@@ -120,7 +120,7 @@ elif st.session_state.phase == "show_roles":
         st.rerun()
 
 # =======================
-# フェーズ3: 夜（プレイヤー順進行）※重要修正箇所
+# フェーズ3: 夜（風船なし・役職非表示＋占い結果確認）
 # =======================
 elif st.session_state.phase == "night":
     st.header(f"🌙 {st.session_state.day_count}日目の夜")
@@ -147,22 +147,27 @@ elif st.session_state.phase == "night":
             st.rerun()
         st.stop()
     
+    # === 占い師結果確認フラグ ===
+    if "seer_result_showing" not in st.session_state:
+        st.session_state.seer_result_showing = False
+        st.session_state.seer_result = None
+    
     # === 役職別行動 ===
     action_done = False
     
-    # 人狼
+    # 人狼（役職非表示）
     if role == "人狼" and st.session_state.night_actions["wolf_target"] is None:
         targets = [i for i in alive_players if st.session_state.roles[i] != "人狼"]
         if targets:
             target = st.selectbox("🐺 襲撃対象を選択", targets, 
-                                format_func=lambda x: f"P{x+1} ({st.session_state.roles[x]})")
+                                format_func=lambda x: f"P{x+1}")  # 役職非表示
             if st.button("🔪 襲撃実行", use_container_width=True):
                 st.session_state.night_actions["wolf_target"] = target
                 st.error(f"✅ P{target+1} を襲撃決定！")
                 st.rerun()
         action_done = True
     
-    # 占い師（1日1人制限）
+    # 占い師（確認ボタン版・風船なし）
     elif role == "占い師" and not st.session_state.seer_done_today:
         targets = [i for i in alive_players if i != player_idx]
         if targets:
@@ -172,14 +177,28 @@ elif st.session_state.phase == "night":
                 is_wolf = st.session_state.roles[target] == "人狼"
                 st.session_state.seer_done_today = True
                 st.session_state.night_actions["seer_target"] = target
-                
-                result = "🦊 **人狼です！**" if is_wolf else "👨‍🌾 **村人陣営です**"
-                st.markdown(f"### 🎯 **占い結果: P{target+1} → {result}**")
-                st.balloons()
+                st.session_state.seer_result = {
+                    "target": target,
+                    "is_wolf": is_wolf
+                }
+                st.session_state.seer_result_showing = True
                 st.rerun()
         action_done = True
     
-    # 騎士
+    # 占い師結果確認画面（風船なし）
+    elif st.session_state.seer_result_showing and role == "占い師":
+        res = st.session_state.seer_result
+        result_text = f"P{res['target']+1} → " + \
+                     ("🦊 **人狼です！**" if res['is_wolf'] else "👨‍🌾 **村人陣営です**")
+        st.markdown(f"### 🔮 **占い結果**")
+        st.markdown(f"#### 🎯 **{result_text}**")
+        
+        if st.button("✅ 結果を確認しました", use_container_width=True):
+            st.session_state.seer_result_showing = False
+            st.rerun()
+        st.stop()
+    
+    # 騎士（役職非表示）
     elif role == "騎士" and st.session_state.night_actions["guard_target"] is None:
         target = st.selectbox("🛡️ 護衛対象を選択", alive_players, 
                             format_func=lambda x: f"P{x+1}")
@@ -189,46 +208,14 @@ elif st.session_state.phase == "night":
             st.rerun()
         action_done = True
     
-    # その他（村人、霊媒師）
+    # その他
     else:
         st.info("😴 **この役職に夜の行動はありません**")
         action_done = True
     
     # 次へボタン
-    if st.button("➡️ 次の方へ", use_container_width=True):
-        st.session_state.current_player += 1
-        st.rerun()
-    
-    # 全員行動完了チェック
-    if st.session_state.current_player >= len(alive_players) * 2:  # 2周して確実に完了
-        st.subheader("🌅 **夜明け・結果発表**")
-        
-        wolf_target = st.session_state.night_actions["wolf_target"]
-        guard_target = st.session_state.night_actions["guard_target"]
-        
-        if wolf_target and guard_target and wolf_target == guard_target:
-            st.session_state.last_night_info = f"🛡️ P{wolf_target+1} が騎士の護衛により無事！"
-        elif wolf_target and st.session_state.alive[wolf_target]:
-            st.session_state.alive[wolf_target] = False
-            st.session_state.last_night_info = f"💀 P{wolf_target+1} が惨殺されました"
-        else:
-            st.session_state.last_night_info = "昨夜は誰も死にませんでした"
-        
-        st.error(st.session_state.last_night_info)
-        
-        if st.button("☀️ 昼フェーズへ", use_container_width=True):
-            winner = check_win()
-            if winner:
-                st.session_state.game_winner = winner
-                st.session_state.phase = "result"
-            else:
-                st.session_state.phase = "day_talk"
-                st.session_state.day_count += 1
-                st.session_state.current_player = 0
-                # 夜の状態リセット
-                st.session_state.night_actions = {"wolf_target": None, "guard_target": None, "seer_target": None}
-                st.session_state.seer_done_today = False
-            st.rerun()
+    if st.bu
+
 
 # =======================
 # フェーズ4: 昼・議論
