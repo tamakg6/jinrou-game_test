@@ -151,7 +151,6 @@ elif st.session_state.phase == "show_roles":
             st.session_state.phase = "night"
             st.session_state.night_step = "wolf"
         st.rerun()
-
 # =======================
 # フェーズ: 夜（プレイヤー順に回す版）
 # =======================
@@ -300,6 +299,7 @@ elif st.session_state.phase == "night":
     if st.button("次へ"):
         st.session_state.night_player_index += 1
         st.rerun()
+
 
 # =======================
 # フェーズ: 昼（議論）
