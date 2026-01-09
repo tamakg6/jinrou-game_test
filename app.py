@@ -237,12 +237,12 @@ elif st.session_state.phase == "night":
         guard_target = st.session_state.night_actions["guard_target"]
         
         if wolf_target and guard_target and wolf_target == guard_target:
-            st.session_state.last_night_info = f"🛡️ P{wolf_target+1} が騎士の護衛により無事！"
+            st.session_state.last_night_info = f"昨夜の犠牲者はいませんでした。"
         elif wolf_target and st.session_state.alive[wolf_target]:
             st.session_state.alive[wolf_target] = False
-            st.session_state.last_night_info = f"💀 P{wolf_target+1} が惨殺されました"
+            st.session_state.last_night_info = f" P{wolf_target+1} が亡くなりました"
         else:
-            st.session_state.last_night_info = "昨夜は誰も死にませんでした"
+            st.session_state.last_night_info = "昨夜の犠牲者はいませんでした。"
         
         st.error(st.session_state.last_night_info)
         st.info("**全員の夜の行動が終了しました**")
@@ -310,7 +310,7 @@ elif st.session_state.phase == "vote":
             if st.session_state.alive[executed]:
                 st.session_state.alive[executed] = False
                 role = st.session_state.roles[executed]
-                st.session_state.last_night_info = f"💀 P{executed+1}（{role}）が処刑されました"
+                st.session_state.last_night_info = f"💀 P{executed+1}が処刑されました"
                 st.error(st.session_state.last_night_info)
             else:
                 st.info("今回は処刑なし")
