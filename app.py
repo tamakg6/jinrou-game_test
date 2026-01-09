@@ -149,11 +149,6 @@ elif st.session_state.phase == "night":
             st.session_state.player_confirmed = True
             st.session_state.confirmed_player = player_idx
             st.rerun()
-    with col2:
-        if st.button(f"❌ 違います", use_container_width=True):
-            st.session_state.player_confirmed = False
-            st.session_state.current_player += 1
-            st.rerun()
     
     # 確認が取れるまで先に進めない
     if not hasattr(st.session_state, 'player_confirmed') or not st.session_state.player_confirmed:
@@ -234,7 +229,7 @@ elif st.session_state.phase == "night":
         st.session_state.current_player += 1
         st.rerun()
     
-       # 全員行動完了チェック ← この部分を以下に置き換え
+    # 全員1周完了で自動昼フェーズ ← これを以下に置き換え
     if st.session_state.current_player >= len(alive_players):
         st.subheader("🌅 **夜明け・結果発表**")
         
@@ -250,28 +245,27 @@ elif st.session_state.phase == "night":
             st.session_state.last_night_info = "昨夜は誰も死にませんでした"
         
         st.error(st.session_state.last_night_info)
+        st.info("**全員の夜の行動が終了しました**")
         
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("☀️ 昼フェーズへ", use_container_width=True):
-                winner = check_win()
-                if winner:
-                    st.session_state.game_winner = winner
-                    st.session_state.phase = "result"
-                else:
-                    st.session_state.phase = "day_talk"
-                    st.session_state.day_count += 1
-                st.session_state.current_player = 0
-                st.session_state.night_actions = {"wolf_target": None, "guard_target": None, "seer_target": None}
-                st.session_state.seer_done_today = False
-                st.session_state.seer_result_showing = False
-                st.session_state.seer_result = None
-                st.session_state.player_confirmed = False
-                st.rerun()
-        with col2:
-            if st.button("🔄 もう一度夜を回す", use_container_width=True):
-                st.session_state.current_player = 0
-                st.rerun()
+        # 自動で昼フェーズへ（ボタンなし）
+        winner = check_win()
+        if winner:
+            st.session_state.game_winner = winner
+            st.session_state.phase = "result"
+        else:
+            st.session_state.phase = "day_talk"
+            st.session_state.day_count += 1
+        
+        # 状態完全リセット
+        st.session_state.current_player = 0
+        st.session_state.night_actions = {"wolf_target": None, "guard_target": None, "seer_target": None}
+        st.session_state.seer_done_today = False
+        st.session_state.seer_result_showing = False
+        st.session_state.seer_result = None
+        st.session_state.player_confirmed = False
+        
+        st.success("☀️ **自動で昼フェーズへ移行します**")
+        st.rerun()
 
 # =======================
 # フェーズ4: 昼・議論
