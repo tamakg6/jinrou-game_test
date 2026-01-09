@@ -110,7 +110,6 @@ elif st.session_state.phase == "show_roles":
     if st.button("🔍 自分の役職を見る", use_container_width=True):
         role = st.session_state.roles[idx]
         st.markdown(f"### 🎭 **あなたの役職: {role}**")
-        st.balloons()
     
     if st.button("✅ 確認完了・次へ", use_container_width=True):
         st.session_state.current_player += 1
@@ -236,13 +235,15 @@ elif st.session_state.phase == "night":
         wolf_target = st.session_state.night_actions["wolf_target"]
         guard_target = st.session_state.night_actions["guard_target"]
         
-        if wolf_target and guard_target and wolf_target == guard_target:
-            st.session_state.last_night_info = f"昨夜の犠牲者はいませんでした。"
-        elif wolf_target and st.session_state.alive[wolf_target]:
-            st.session_state.alive[wolf_target] = False
-            st.session_state.last_night_info = f" P{wolf_target+1} が亡くなりました"
+        if wolf_target is not None:  # まず襲撃対象確認
+            if guard_target is not None and wolf_target == guard_target:
+            # 騎士守護成功 → 誰も死なない
+            last_night_info = "昨夜の犠牲者はいませんでした"
         else:
-            st.session_state.last_night_info = "昨夜の犠牲者はいませんでした。"
+            # 守護失敗 → 襲撃対象を確実に死亡処理
+            if st.session_state.alive[wolf_target]:
+                st.session_state.alive[wolf_target] = False
+
         
         st.error(st.session_state.last_night_info)
         st.info("**全員の夜の行動が終了しました**")
