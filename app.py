@@ -119,8 +119,8 @@ elif st.session_state.phase == "show_roles":
             st.session_state.phase = "night"
         st.rerun()
 
-## =======================
-# フェーズ3: 夜（風船なし・役職非表示＋占い結果確認）
+# =======================
+# フェーズ3: 夜（プレイヤー確認画面追加版）
 # =======================
 elif st.session_state.phase == "night":
     st.header(f"🌙 {st.session_state.day_count}日目の夜")
@@ -134,18 +134,37 @@ elif st.session_state.phase == "night":
     # 生存者リストから現在プレイヤーを取得
     current_idx = st.session_state.current_player % len(alive_players)
     player_idx = alive_players[current_idx]
-    role = st.session_state.roles[player_idx]
     
-    st.subheader(f"👤 **プレイヤー {player_idx+1}** の行動")
-    st.info(f"🎭 **役職: {role}**")
+    # === プレイヤー確認画面 ===
+    st.subheader(f"🎯 **プレイヤー {player_idx+1} 番の方ですか？**")
+    st.markdown(f"""
+    ### 📱 **現在の担当: プレイヤー {player_idx+1}**
     
-    # 死亡チェック
-    if not st.session_state.alive[player_idx]:
-        st.warning("❌ 死亡済みのためスキップ")
-        if st.button("⏭️ 次の方へ"):
+    **あなたはプレイヤー {player_idx+1} ですか？**
+    """)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button(f"✅ はい、私はP{player_idx+1}です", use_container_width=True):
+            st.session_state.player_confirmed = True
+            st.session_state.confirmed_player = player_idx
+            st.rerun()
+    with col2:
+        if st.button(f"❌ 違います", use_container_width=True):
+            st.session_state.player_confirmed = False
             st.session_state.current_player += 1
             st.rerun()
+    
+    # 確認が取れるまで先に進めない
+    if not hasattr(st.session_state, 'player_confirmed') or not st.session_state.player_confirmed:
+        st.warning("⚠️ **正しいプレイヤーさんが確認ボタンを押してください**")
         st.stop()
+    
+    # 確認済みプレイヤーの行動画面
+    role = st.session_state.roles[player_idx]
+    st.markdown("---")
+    st.subheader(f"👤 **プレイヤー {player_idx+1}** の行動")
+    st.info(f"🎭 **役職: {role}**")
     
     # === 占い師結果確認フラグ ===
     if "seer_result_showing" not in st.session_state:
@@ -160,14 +179,13 @@ elif st.session_state.phase == "night":
         targets = [i for i in alive_players if st.session_state.roles[i] != "人狼"]
         if targets:
             target = st.selectbox("🐺 襲撃対象を選択", targets, 
-                                format_func=lambda x: f"P{x+1}")  # 役職非表示
+                                format_func=lambda x: f"P{x+1}")
             if st.button("🔪 襲撃実行", use_container_width=True):
                 st.session_state.night_actions["wolf_target"] = target
                 st.error(f"✅ P{target+1} を襲撃決定！")
                 st.rerun()
-        action_done = True
     
-    # 占い師（確認ボタン版・風船なし）
+    # 占い師
     elif role == "占い師" and not st.session_state.seer_done_today:
         targets = [i for i in alive_players if i != player_idx]
         if targets:
@@ -183,9 +201,8 @@ elif st.session_state.phase == "night":
                 }
                 st.session_state.seer_result_showing = True
                 st.rerun()
-        action_done = True
     
-    # 占い師結果確認画面（風船なし）
+    # 占い師結果確認
     elif st.session_state.seer_result_showing and role == "占い師":
         res = st.session_state.seer_result
         result_text = f"P{res['target']+1} → " + \
@@ -198,7 +215,7 @@ elif st.session_state.phase == "night":
             st.rerun()
         st.stop()
     
-    # 騎士（役職非表示）
+    # 騎士
     elif role == "騎士" and st.session_state.night_actions["guard_target"] is None:
         target = st.selectbox("🛡️ 護衛対象を選択", alive_players, 
                             format_func=lambda x: f"P{x+1}")
@@ -206,15 +223,14 @@ elif st.session_state.phase == "night":
             st.session_state.night_actions["guard_target"] = target
             st.success(f"✅ P{target+1} を護衛決定！")
             st.rerun()
-        action_done = True
     
     # その他
     else:
         st.info("😴 **この役職に夜の行動はありません**")
-        action_done = True
     
     # 次へボタン
     if st.button("➡️ 次の方へ", use_container_width=True):
+        st.session_state.player_confirmed = False  # リセット
         st.session_state.current_player += 1
         st.rerun()
     
@@ -248,6 +264,7 @@ elif st.session_state.phase == "night":
                 st.session_state.seer_done_today = False
                 st.session_state.seer_result_showing = False
                 st.session_state.seer_result = None
+                st.session_state.player_confirmed = False
             st.rerun()
 
 # =======================
