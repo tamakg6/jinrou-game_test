@@ -119,7 +119,7 @@ elif st.session_state.phase == "show_roles":
             st.session_state.phase = "night"
         st.rerun()
 
-# =======================
+## =======================
 # フェーズ3: 夜（風船なし・役職非表示＋占い結果確認）
 # =======================
 elif st.session_state.phase == "night":
@@ -214,8 +214,41 @@ elif st.session_state.phase == "night":
         action_done = True
     
     # 次へボタン
-    if st.bu
-
+    if st.button("➡️ 次の方へ", use_container_width=True):
+        st.session_state.current_player += 1
+        st.rerun()
+    
+    # 全員行動完了チェック
+    if st.session_state.current_player >= len(alive_players) * 2:
+        st.subheader("🌅 **夜明け・結果発表**")
+        
+        wolf_target = st.session_state.night_actions["wolf_target"]
+        guard_target = st.session_state.night_actions["guard_target"]
+        
+        if wolf_target and guard_target and wolf_target == guard_target:
+            st.session_state.last_night_info = f"🛡️ P{wolf_target+1} が騎士の護衛により無事！"
+        elif wolf_target and st.session_state.alive[wolf_target]:
+            st.session_state.alive[wolf_target] = False
+            st.session_state.last_night_info = f"💀 P{wolf_target+1} が惨殺されました"
+        else:
+            st.session_state.last_night_info = "昨夜は誰も死にませんでした"
+        
+        st.error(st.session_state.last_night_info)
+        
+        if st.button("☀️ 昼フェーズへ", use_container_width=True):
+            winner = check_win()
+            if winner:
+                st.session_state.game_winner = winner
+                st.session_state.phase = "result"
+            else:
+                st.session_state.phase = "day_talk"
+                st.session_state.day_count += 1
+                st.session_state.current_player = 0
+                st.session_state.night_actions = {"wolf_target": None, "guard_target": None, "seer_target": None}
+                st.session_state.seer_done_today = False
+                st.session_state.seer_result_showing = False
+                st.session_state.seer_result = None
+            st.rerun()
 
 # =======================
 # フェーズ4: 昼・議論
