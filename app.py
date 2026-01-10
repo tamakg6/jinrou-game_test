@@ -91,7 +91,7 @@ if st.session_state.phase == "setup":
         random.shuffle(roles)
         st.session_state.num_players = num
         st.session_state.roles = roles
-        st.session_state.alive = [True]   num
+        st.session_state.alive = [True] * num
         st.session_state.day_count = 1
         st.session_state.current_player = 0
         st.session_state.phase = "show_roles"
