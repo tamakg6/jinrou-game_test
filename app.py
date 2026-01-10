@@ -286,7 +286,7 @@ elif st.session_state.phase == "day_talk":
     
     if st.button(" 投票フェーズ開始", use_container_width=True):
         st.session_state.phase = "vote"
-        st.session_state.votes = [None]   st.session_state.num_players
+        st.session_state.votes = [None] * st.session_state.num_players
         st.session_state.vote_index = 0
         st.session_state.current_player = 0
         st.rerun()
